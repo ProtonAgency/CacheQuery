@@ -64,6 +64,7 @@ class CacheQueryServiceProvider extends ServiceProvider
             string $key = '',
             string $store = null,
             int $wait = 0,
+            array $cacheTags = []
         ): Builder {
             /** @var \Illuminate\Database\Query\Builder $this */
 
@@ -72,8 +73,8 @@ class CacheQueryServiceProvider extends ServiceProvider
                 $this->connection = $this->connection->connection;
             }
 
-            $this->connection = CacheAwareConnectionProxy::crateNewInstance(
-                $this->connection, $ttl === false ? -1 : $ttl, $key, $wait, $store
+            $this->connection = CacheAwareConnectionProxy::createNewInstance(
+                $this->connection, $ttl === false ? -1 : $ttl, $key, $wait, $store, $cacheTags
             );
 
             return $this;
@@ -92,18 +93,19 @@ class CacheQueryServiceProvider extends ServiceProvider
             string $key = '',
             string $store = null,
             int $wait = 0,
+=            array $cacheTags = []
         ): EloquentBuilder {
             /**
              * @var \Illuminate\Database\Eloquent\Builder $this
              *
              * @phpstan-ignore-next-line
              */
-            $this->getQuery()->cache($ttl, $key, $store, $wait);
+            $this->getQuery()->cache($ttl, $key, $store, $wait, $cacheTags);
 
             // This global scope is responsible for caching eager loaded relations.
             $this->withGlobalScope(
                 Scopes\CacheRelations::class,
-                new Scopes\CacheRelations($ttl === false ? -1 : $ttl, $key, $store, $wait)
+                new Scopes\CacheRelations($ttl === false ? -1 : $ttl, $key, $store, $wait, $cacheTags)
             );
 
             return $this;

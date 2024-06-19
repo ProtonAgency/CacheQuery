@@ -35,6 +35,7 @@ class CacheAwareConnectionProxy extends Connection
         protected DateTimeInterface|DateInterval|int|null $ttl,
         protected int $lockWait,
         protected string $cachePrefix,
+        protected array $cacheTags = [],
         public string $userKey = '',
         public string $computedKey = '',
         public string $queryKeySuffix = '',
@@ -73,7 +74,7 @@ class CacheAwareConnectionProxy extends Connection
                 if ($results === null) {
                     $results = $this->connection->select($query, $bindings, $useReadPdo);
 
-                    $this->repository->put($key, $results, $this->ttl);
+                    $this->repository->tags($this->cacheTags)->put($key, $results, $this->ttl);
 
                     // If the user added a user key, we will append this computed key to it and save it.
                     if ($this->userKey) {
@@ -155,7 +156,7 @@ class CacheAwareConnectionProxy extends Connection
 
         $list['expires_at'] = max($this->getTimestamp($this->ttl), $list['expires_at']);
 
-        $this->repository->put($this->userKey, $list, $this->ttl);
+        $this->repository->tags($this->cacheTags)->put($this->userKey, $list, $this->ttl);
     }
 
     /**
@@ -205,12 +206,13 @@ class CacheAwareConnectionProxy extends Connection
     /**
      * Create a new CacheAwareProxy instance.
      */
-    public static function crateNewInstance(
+    public static function createNewInstance(
         ConnectionInterface $connection,
         DateTimeInterface|DateInterval|int|null $ttl,
         string $key,
         int $wait,
         ?string $store,
+        array $tags = [],
     ): static {
         // @phpstan-ignore-next-line
         return new static(
@@ -219,6 +221,7 @@ class CacheAwareConnectionProxy extends Connection
             $ttl,
             $wait,
             config('cache-query.prefix'),
+            $tags,
             $key
         );
     }

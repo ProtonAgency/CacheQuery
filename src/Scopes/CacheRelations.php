@@ -19,6 +19,7 @@ class CacheRelations implements Scope
         protected string $key,
         protected ?string $store,
         protected int $wait,
+        protected array $cacheTags = [],
     ) {
         //
     }
@@ -39,7 +40,7 @@ class CacheRelations implements Scope
 
                 // Always override the previous eloquent builder with the base cache parameters.
                 // @phpstan-ignore-next-line
-                $eloquent->cache($this->ttl, $this->key, $this->store, $this->wait);
+                $eloquent->cache($this->ttl, $this->key, $this->store, $this->wait, $this->cacheTags);
 
                 // @phpstan-ignore-next-line
                 $eloquent->getConnection()->queryKeySuffix = $builder->getConnection()->computedKey;
